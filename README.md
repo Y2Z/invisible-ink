@@ -5,11 +5,11 @@ Tool for stripping vector paths from font files.
 
 ## Application
 
-Add fallback web fonts to your page that prevent contents from being shifted around while it’s loading.
+Create fallback web fonts for text to protect other contents from being shifted during initial load.
 
 The idea is that text rendered using invisible fonts remains hidden while taking up exactly the same amount of space as when the original web font is used, so when it finishes loading and the text gets rendered with a new font, not a single pixel gets shifted.
 
-This is a pure-CSS method of creating placeholders for web fonts.
+This is a no-JS method of creating UX-friendly placeholders for web fonts.
 
 
 ## Pros and cons
@@ -28,14 +28,14 @@ Cons
 
 ## Where it works
 
-| Firefox  | Safari  | Brave  | Chromium  | Safari (iOS)  | DuckDuckGo (iOS)  |
-|----------|---------|--------|-----------|---------------|-------------------|
-| yes      | yes     | yes    | yes       | yes           | yes               |
+| Firefox  | Safari  | Brave  | Chromium  | Safari (iOS)  | DuckDuckGo (iOS)  | Other browsers  |
+|----------|---------|--------|-----------|---------------|-------------------|-----------------|
+| yes      | yes     | yes    | yes       | yes           | yes               | not yet known   |
 
 
 ## See for yourself!
 
-Within the `example` directory you’ll find a basic demo example. Don’t open `index.html` directly though, but rather run `npm run demo-server` and then open http://localhost:5703 (to see the before and after pages load in slo-mo, side-by-side). You can also see them separately via http://localhost:5703/without-invisible-ink.html and http://localhost:5703/with-invisible-ink.html respectively. Have fun!
+Within the `example` directory you’ll find a basic demo example. Don’t open `index.html` directly though, but rather run `npm run demo-server` and then open http://localhost:5703 (to see the before and after pages load in slo-mo, side-by-side). You can also view them separately via http://localhost:5703/without-invisible-ink.html and http://localhost:5703/with-invisible-ink.html respectively. Have fun!
 
 
 ## How to install on your system

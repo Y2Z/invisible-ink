@@ -9,7 +9,7 @@ Create fallback web fonts to protect contents from being shifted during initial 
 
 The idea is that text rendered using invisible fonts remains hidden while taking up exactly the same amount of space as when the original web font is used, so when it finishes loading and the text gets rendered with a new font, not a single pixel gets shifted.
 
-This is a no-JS method of creating UX-friendly placeholders for web fonts.
+This is a no-JS approach to combating [FOUT](https://css-tricks.com/fout-foit-foft/).
 
 
 ## Pros and cons

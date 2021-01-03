@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="icon" href="images/1x1-00000000.png" />
+        <title>Invisible Ink Demo</title>
+        <style>
+
+            body {
+                margin: 0;
+                font-family: Arial, Helvetica, sans-serif
+            }
+
+            a {
+                background-color: rgb(209, 66, 22);
+                color: #fff;
+                font-size: 23px;
+                height: 50px;
+                line-height: 50px;
+                margin: 0;
+                position: absolute;
+                text-align: center;
+                text-decoration: none;
+                text-shadow: 0 0 2px #000;
+                width: 50%;
+            }
+
+            a + a {
+                background-color: rgb(20, 167, 111);
+                right: 0;
+            }
+
+            iframe {
+                border: none;
+                height: calc(100% - 50px);
+                position: absolute;
+                width: 50%;
+                top: 50px;
+            }
+
+            iframe + iframe {
+                right: 0;
+            }
+
+            body::before {
+                content: '';
+                position: fixed;
+                width: 1px;
+                height: 100%;
+                top: 0;
+                left: 50%;
+                bottom: 0;
+                background-color: #fff;
+                z-index: 9999;
+            }
+
+        </style>
+    </head>
+    <body>
+        <a href="without-invisible-ink.html">BEFORE (click me)</a>
+        <a href="with-invisible-ink.html">AFTER (click me)</a>
+        <iframe src="without-invisible-ink.html"></iframe>
+        <iframe src="with-invisible-ink.html"></iframe>
+    </body>
+</html>

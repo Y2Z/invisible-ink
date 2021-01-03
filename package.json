@@ -1,0 +1,30 @@
+{
+  "name": "invisible-ink",
+  "version": "1.0.0",
+  "description": "Tool for stripping fonts off their path data. Can be used for creating fallback web fonts that prevent page distortion during initial load",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "demo-server": "node throttled-web-server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Y2Z/invisible-ink.git"
+  },
+  "keywords": [
+    "fonts",
+    "webfonts",
+    "preloading"
+  ],
+  "author": "Y2Z",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Y2Z/invisible-ink/issues"
+  },
+  "homepage": "https://github.com/Y2Z/invisible-ink#readme",
+  "devDependencies": {
+    "base64-arraybuffer": "0.2.0",
+    "opentype.js": "1.3.3",
+    "throttle": "1.0.3"
+  }
+}

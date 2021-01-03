@@ -83,7 +83,7 @@ This’s more of a proof of concept than a final piece of software. But it works
 
 ## Credits
 
-Sample font “Alex Brush” used for the demo was designed by [Robert E. Leuschke](https://www.typesetit.com/)
+Sample font “Alex Brush” used for the demo was designed by [Robert E. Leuschke](https://www.typesetit.com/).
 
 All photos shown on the demo’s pages were obtained from [Pexels](https://pexels.com/) and are in the public domain along with the text by [H.P. Lovecraft](https://www.hplovecraft.com/).
 

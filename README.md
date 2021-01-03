@@ -76,7 +76,7 @@ This’s more of a proof of concept than a final piece of software. But it works
 
 Sample font “Alex Brush” used for the demo was designed by [Robert E. Leuschke](https://www.typesetit.com/)
 
-All photos shown in the demo pages were obtained from [Pexels](https://pexels.com/) and are in public domain along with the text by [H.P. Lovecraft](https://www.hplovecraft.com/).
+All photos shown on the demo’s pages were obtained from [Pexels](https://pexels.com/) and are in the public domain along with the text by [H.P. Lovecraft](https://www.hplovecraft.com/).
 
 ## License
 

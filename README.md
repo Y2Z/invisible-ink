@@ -46,7 +46,14 @@ Within the `example` directory you’ll find a basic demo example. Don’t open 
 ## How to use in your project
 
 1. `invisible-ink My-Font-Name.ttf > output.css`
-2. Change all `font-family: "My Font Name", …;` in your code to `font-family: "My Font Name", "My Font Name Invisible Ink", …;`
+2. Change all
+    ```CSS
+    font-family: "My Font Name", …;
+    ```
+    in your code to
+    ```CSS
+    font-family: "My Font Name", "My Font Name Invisible Ink", …;
+    ```
 3. Add this CSS rule:
     ```CSS
     #invisible-ink {

@@ -1,8 +1,8 @@
 {
   "name": "invisible-ink",
-  "version": "1.0.0",
-  "description": "Tool for stripping fonts off their path data. Can be used for creating fallback web fonts that prevent page distortion during initial load",
-  "main": "index.js",
+  "version": "1.0.1",
+  "description": "Tool for stripping vector paths from font files",
+  "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "demo-server": "node throttled-web-server.js"
@@ -11,20 +11,29 @@
     "type": "git",
     "url": "git+https://github.com/Y2Z/invisible-ink.git"
   },
+  "bin": {
+    "invisible-ink": "bin/invisible-ink.js"
+  },
   "keywords": [
-    "fonts",
-    "webfonts",
-    "preloading"
+    "command line",
+    "tool",
+    "font",
+    "webfont",
+    "preload",
+    "placeholder"
   ],
-  "author": "Y2Z",
+  "author": "Sunshine <sunshine@uberspace.net>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Y2Z/invisible-ink/issues"
   },
-  "homepage": "https://github.com/Y2Z/invisible-ink#readme",
-  "devDependencies": {
+  "homepage": "https://y2z.github.io/projects/invisible-ink",
+  "dependencies": {
     "base64-arraybuffer": "0.2.0",
-    "opentype.js": "1.3.3",
+    "commander": "6.2.1",
+    "opentype.js": "1.3.3"
+  },
+  "devDependencies": {
     "throttle": "1.0.3"
   }
 }

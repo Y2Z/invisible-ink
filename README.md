@@ -5,7 +5,7 @@ Tool for stripping vector paths from font files.
 
 ## Application
 
-Create fallback web fonts for text to protect other contents from being shifted during initial load.
+Create fallback web fonts to protect contents from being shifted during initial load.
 
 The idea is that text rendered using invisible fonts remains hidden while taking up exactly the same amount of space as when the original web font is used, so when it finishes loading and the text gets rendered with a new font, not a single pixel gets shifted.
 

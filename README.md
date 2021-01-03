@@ -85,6 +85,12 @@ Sample font “Alex Brush” used for the demo was designed by [Robert E. Leusch
 
 All photos shown on the demo’s pages were obtained from [Pexels](https://pexels.com/) and are in the public domain along with the text by [H.P. Lovecraft](https://www.hplovecraft.com/).
 
+
 ## License
 
-MIT
+<a href="http://creativecommons.org/publicdomain/zero/1.0/">
+    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" alt="CC0" />
+</a>
+<br />
+To the extent possible under law, the author(s) have dedicated all copyright related and neighboring rights to this software to the public domain worldwide.
+This software is distributed without any warranty.

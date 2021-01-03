@@ -2,7 +2,10 @@
   "name": "invisible-ink",
   "version": "1.0.1",
   "description": "Tool for stripping vector paths from font files",
-  "main": "lib/index.js",
+  "bin": {
+    "invisible-ink": "bin/invisible-ink.js"
+  },
+  "module": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "demo-server": "node throttled-web-server.js"
@@ -10,9 +13,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Y2Z/invisible-ink.git"
-  },
-  "bin": {
-    "invisible-ink": "bin/invisible-ink.js"
   },
   "keywords": [
     "command line",
@@ -23,7 +23,7 @@
     "placeholder"
   ],
   "author": "Sunshine <sunshine@uberspace.net>",
-  "license": "MIT",
+  "license": "CC0-1.0",
   "bugs": {
     "url": "https://github.com/Y2Z/invisible-ink/issues"
   },

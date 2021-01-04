@@ -1,11 +1,11 @@
 {
   "name": "invisible-ink",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Tool for stripping vector paths from font files",
   "bin": {
     "invisible-ink": "bin/invisible-ink.js"
   },
-  "module": "lib/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "demo-server": "node throttled-web-server.js"

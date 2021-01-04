@@ -12,13 +12,17 @@ const packageJson = require("../package.json");
 
 const MEDIA_TYPE = "application/vnd.ms-opentype";
 
-var exitCode = 0;
-
 program
     .version(packageJson.version)
     .arguments("[fontFile...]")
-    .action((fontFiles) => {
+    .action(fontFiles => {
         const output = [];
+        var successCount = 0;
+        var failureCount = 0;
+
+        if (fontFiles.length < 1) {
+            program.outputHelp();
+        }
 
         function bufferToArrayBuffer(buf) {
             const ab = new ArrayBuffer(buf.length);
@@ -46,9 +50,10 @@ program
     src: url("data:${MEDIA_TYPE};base64,${data}") format("opentype");
 }`
                 );
+                successCount++;
             } catch (_) {
                 console.error(`${fontFile}: unable to process font file`);
-                exitCode = 1;
+                failureCount++;
             }
         });
 
@@ -57,6 +62,7 @@ program
             console.log(output.join("\n\n"));
         }
 
+        const exitCode = (successCount > 0 && failureCount == 0) ? 0 : 2;
         process.exit(exitCode);
     })
     .parse(process.argv);

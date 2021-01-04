@@ -26,13 +26,6 @@ Cons
  - File size overhead of about 12KB
 
 
-## Where it works
-
-| Firefox  | Safari  | Brave  | Chromium  | Safari (iOS)  | DuckDuckGo (iOS)  | Other browsers  |
-|----------|---------|--------|-----------|---------------|-------------------|-----------------|
-| yes      | yes     | yes    | yes       | yes           | yes               | not yet known   |
-
-
 ## See for yourself!
 
 Within the `example` directory you’ll find a basic demo. Don’t open `index.html` directly though, but rather run `npm run demo-server` and then open http://localhost:5703 (to see the before and after pages load in slo-mo, side-by-side). You can also view them separately via http://localhost:5703/without-invisible-ink.html and http://localhost:5703/with-invisible-ink.html respectively. Have fun!

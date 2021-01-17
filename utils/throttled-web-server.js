@@ -1,5 +1,6 @@
 const fs = require("fs");
 const http = require("http");
+const path = require("path");
 const url = require("url");
 const ReadableStream = require("stream").Readable;
 
@@ -17,28 +18,29 @@ const stringToStream = (string) => {
 }
 
 const server = http.createServer((req, res) => {
+    let filePath;
     const requestedUrl = url.parse(req.url);
 
     switch (requestedUrl.pathname) {
         // Homepage
         case "/":
         case "/index.html":
-            fs.createReadStream("../example/index.html").pipe(res);
+            filePath = path.resolve(process.cwd(), "example", "index.html");
+            fs.createReadStream(filePath).pipe(res);
             break;
 
         // Favicon
         case "/images/1x1-00000000.png":
-            fs.createReadStream("../example" + decodeURIComponent(requestedUrl.pathname))
-                .pipe(res);
+            filePath = path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname));
+            fs.createReadStream(filePath).pipe(res);
             break;
 
         // Content that needs to be throttled
         case "/images/pexels-cmonphotography-4202203.jpg":
         case "/images/pexels-cmonphotography-2664261.jpg":
         case "/fonts/AlexBrush-Regular.ttf":
-            fs.createReadStream("../example" + decodeURIComponent(requestedUrl.pathname))
-                .pipe(new Throttle(bytesPerSecond))
-                .pipe(res);
+            filePath = path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname));
+            fs.createReadStream(filePath).pipe(new Throttle(bytesPerSecond)).pipe(res);
             break;
 
         // Modify and throttle
@@ -46,9 +48,8 @@ const server = http.createServer((req, res) => {
         case "/example-hollow.html":
         case "/example-solid.html":
         case "/example-gradual.html":
-            var fileContents =
-                fs.readFileSync("../example" + decodeURIComponent(requestedUrl.pathname))
-                    .toString();
+            filePath = path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname));
+            var fileContents = fs.readFileSync(filePath).toString();
             fileContents = fileContents.replace(".ttf", ".ttf?" + Date.now());
             const stream = stringToStream(fileContents);
             stream.pipe(new Throttle(bytesPerSecond)).pipe(res);

@@ -67,6 +67,8 @@ const mockHTML = `\
 // ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝ ╚═════╝  ╚══╝╚══╝
 
 describe("Hollow", function() {
+    this.timeout(5000);
+
     it("should display no glyphs", async function() {
         const imageFileName = "hollow";
         const libraryOptions = {};
@@ -144,6 +146,8 @@ describe("Hollow", function() {
 // ╚══════╝ ╚═════╝ ╚══════╝╚═╝╚═════╝
 
 describe("Solid", function() {
+    this.timeout(5000);
+
     it("should have only solid blocks instead of glyphs", async function() {
         const imageFileName = "solid";
         const libraryOptions = {
@@ -224,6 +228,8 @@ describe("Solid", function() {
 //  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝
 
 describe("Gradual", function() {
+    this.timeout(5000);
+
     it("should display all glyphs from donor font", async function() {
         const imageFileName = "gradual";
         const libraryOptions = {};

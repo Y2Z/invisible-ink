@@ -30,7 +30,7 @@ Cons
 
 Within the `example` directory you’ll find a basic demo. Don’t open `index.html` directly though, but rather run `npm run demo-server` and then open http://localhost:5703 (to see the before and after pages load in slo-mo, side-by-side). You can also view them separately via http://localhost:5703/without-invisible-ink.html and http://localhost:5703/with-invisible-ink.html respectively. Have fun!
 
-[![](https://y2z.github.io/projects/invisible-ink/assets/screencast.gif?)](https://y2z.github.io/projects/invisible-ink/example)
+[![](https://user-images.githubusercontent.com/1392048/104838565-cc709600-585f-11eb-943b-21678d06c3a4.gif)](https://y2z.github.io/projects/invisible-ink/example)
 
 
 ## How to install on your system

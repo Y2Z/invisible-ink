@@ -18,8 +18,10 @@ const stringToStream = (string) => {
 }
 
 const server = http.createServer((req, res) => {
+    const baseURL = "http://" + req.headers.host + "/";
+    const requestedUrl = new URL(req.url, baseURL);
+
     let filePath;
-    const requestedUrl = url.parse(req.url);
 
     switch (requestedUrl.pathname) {
         // Homepage

@@ -3,12 +3,14 @@
     <head>
         <meta charset="UTF-8" />
         <link rel="icon" href="images/1x1-00000000.png" />
-        <title>Without Invisible Ink</title>
+        <title>Conventional</title>
         <style>
 
             @font-face {
                 font-family: "Alex Brush";
-                src: url("fonts/AlexBrush-Regular.ttf");
+                src: url('fonts/AlexBrush-Regular.ttf');
+                /* Suppress FOIT */
+                font-display: swap;
             }
 
             body {

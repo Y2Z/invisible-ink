@@ -1,62 +1,77 @@
 #!/usr/bin/env node
 
+"use strict";
+
 const fs = require("fs");
 const path = require("path");
 const process = require("process");
 
 const program = require("commander");
-const base64Encode = require("base64-arraybuffer").encode;
 
 const library = require("../lib");
-const packageJson = require("../package.json");
-
-const MEDIA_TYPE = "application/vnd.ms-opentype";
-
-var exitCode = 0;
+const packageJSON = require("../package.json");
 
 program
-    .version(packageJson.version)
+    .version(packageJSON.version)
     .arguments("[fontFile...]")
-    .action((fontFiles) => {
+    .option('-b, --blocks', 'substitute glyphs with solid blocks')
+    .option('-d, --donor <fontFile>', 'borrow glyphs from donor font file')
+    .option('-f, --filter <textFile>', 'only substitute characters found in this file')
+    .action(fontFiles => {
         const output = [];
+        var successCount = 0;
+        var failureCount = 0;
 
-        function bufferToArrayBuffer(buf) {
-            const ab = new ArrayBuffer(buf.length);
-            const array = new Uint8Array(ab);
+        if (fontFiles.length < 1) {
+            program.outputHelp();
+        } else {
+            const options = {
+                allowedUnicodes: null,
+                useSolidBlocks: program.blocks,
+            };
 
-            for (var i = 0, ilen = buf.length; i < ilen; i++) {
-                array[i] = buf[i];
+            if (program.filter) {
+                options.allowedUnicodes = [];
+                const filterFilePath = path.resolve(process.cwd(), program.filter);
+                const filter = fs.readFileSync(filterFilePath).toString();
+                filter.split('').forEach(character => {
+                    options.allowedUnicodes.push(character.charCodeAt());
+                });
+
+                // Make unique
+                options.allowedUnicodes = [...new Set(options.allowedUnicodes)];
             }
 
-            return ab;
-        }
-
-        // Loop through arguments
-        fontFiles.forEach(fontFile => {
-            try {
-                const sourceFontPath = path.join(process.cwd(), fontFile);
-                const sourceFontBuffer = fs.readFileSync(sourceFontPath)
-                const sourceFontAB = bufferToArrayBuffer(sourceFontBuffer);
-                const invisibleFont = library.create(sourceFontAB);
-                const data = base64Encode(invisibleFont.data);
-
-                output.push(
-`@font-face {
-    font-family: "${invisibleFont.name}";
-    src: url("data:${MEDIA_TYPE};base64,${data}") format("opentype");
-}`
-                );
-            } catch (_) {
-                console.error(`${fontFile}: unable to process font file`);
-                exitCode = 1;
+            var donorFontAB;
+            if (program.donor) {
+                const donorFontPath = path.resolve(process.cwd(), program.donor);
+                const donorFontBuffer = fs.readFileSync(donorFontPath)
+                donorFontAB = library.bufferToArrayBuffer(donorFontBuffer);
             }
-        });
 
-        // Print the output
-        if (output.length > 0) {
-            console.log(output.join("\n\n"));
+            // Loop through arguments
+            fontFiles.forEach(fontFile => {
+                try {
+                    const sourceFontPath = path.resolve(process.cwd(), fontFile);
+                    const sourceFontBuffer = fs.readFileSync(sourceFontPath)
+                    const sourceFontAB = library.bufferToArrayBuffer(sourceFontBuffer);
+                    const placeholderFont = library.createFontBuffer(sourceFontAB, options, donorFontAB);
+                    const fontFaceDefinition = library.composeCSSFontFaceDefinition(placeholderFont.name, "opentype", placeholderFont.data);
+                    output.push(fontFaceDefinition);
+                    successCount++;
+                } catch (err) {
+                    console.error(`unable to process font file ${fontFile}: ${err}`);
+                    failureCount++;
+                }
+            });
+
+            // Print the output
+            if (output.length > 0) {
+                console.log(output.join("\n\n"));
+            }
         }
 
+        const exitCode = (successCount > 0 && failureCount == 0) ? 0 : 2;
         process.exit(exitCode);
     })
     .parse(process.argv);

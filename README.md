@@ -47,17 +47,17 @@ Within the `example` directory you’ll find a basic demo. Don’t open `index.h
     ```
     in your code to
     ```CSS
-    font-family: "My Font Name", "My Font Name Invisible Ink", …;
+    font-family: "My Font Name", "My Font Name Placeholder", …;
     ```
 3. Add this CSS rule:
     ```CSS
     #invisible-ink {
-        font-family: "My Font Name Invisible Ink";
+        font-family: "My Font Name Placeholder";
     }
     ```
     and this HTML code:
     ```HTML
-    <a id="invisible-ink"></a>
+    <span id="invisible-ink"></span>
     ```
     to your page.
 4. Prepend contents of `output.css` to your project’s CSS codebase.

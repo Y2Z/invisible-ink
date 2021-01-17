@@ -30,15 +30,39 @@
                 right: 0;
             }
 
+            a + a + a {
+                background-color: rgb(20, 120, 167);
+                top: 50%;
+                left: 0;
+            }
+
+            a + a + a + a {
+                background-color: rgb(155, 20, 167);
+                top: 50%;
+                left: auto;
+                right: 0;
+            }
+
             iframe {
                 border: none;
-                height: calc(100% - 50px);
+                height: calc(50% - 50px);
                 position: absolute;
                 width: 50%;
                 top: 50px;
             }
 
             iframe + iframe {
+                right: 0;
+            }
+
+            iframe + iframe + iframe {
+                top: calc(50% + 50px);
+                left: 0;
+            }
+
+            iframe + iframe + iframe + iframe {
+                top: calc(50% + 50px);
+                left: auto;
                 right: 0;
             }
 
@@ -57,9 +81,14 @@
         </style>
     </head>
     <body>
-        <a href="without-invisible-ink.html">BEFORE (click me)</a>
-        <a href="with-invisible-ink.html">AFTER (click me)</a>
-        <iframe src="without-invisible-ink.html"></iframe>
-        <iframe src="with-invisible-ink.html"></iframe>
+        <!-- Files linked below were automatically generated (by `make example`) -->
+        <a href="example-conventional.html">Conventional</a>
+        <a href="example-gradual.html">Gradual</a>
+        <a href="example-hollow.html">Hollow</a>
+        <a href="example-solid.html">Solid</a>
+        <iframe src="example-conventional.html"></iframe>
+        <iframe src="example-gradual.html"></iframe>
+        <iframe src="example-hollow.html"></iframe>
+        <iframe src="example-solid.html"></iframe>
     </body>
 </html>

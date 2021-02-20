@@ -1,6 +1,6 @@
 {
   "name": "invisible-ink",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Tool for stripping vector paths from font files",
   "bin": {
     "invisible-ink": "bin/invisible-ink.js"

@@ -16,7 +16,7 @@ This is a purely HTML+CSS approach to combating [FOUT](https://css-tricks.com/fo
 
 Within the `example` directory you’ll find a basic demo. Don’t open `index.html` directly, but rather run `make demo` and then open http://localhost:5703.
 
-[![](https://user-images.githubusercontent.com/1392048/104838565-cc709600-585f-11eb-943b-21678d06c3a4.gif)](https://y2z.github.io/projects/invisible-ink/example)
+![](assets/screencast.gif)]
 
 
 ## How to install on your system

@@ -1,34 +1,20 @@
 # Invisible Ink
 
-Tool for stripping vector paths from font files.
+Gradually loading web fonts.
 
 
 ## Application
 
-Create fallback web fonts to protect contents from being shifted during initial load.
+Create fallback web fonts to protect contents from jumping during initial page load.
 
-The idea is that text rendered using invisible fonts remains hidden while taking up exactly the same amount of space as when the original web font is used, so when it finishes loading and the text gets rendered with a new font, not a single pixel gets shifted.
+The idea is that text rendered using placeholder fonts remains hidden while taking up exactly the same amount of space as when the original web font is used, so once it finishes loading and the text gets rendered with a new font, not a single pixel gets shifted.
 
-This is a no-JS approach to combating [FOUT](https://css-tricks.com/fout-foit-foft/).
-
-
-## Pros and cons
-
-Pros
-- While loading, the page’s elements are no longer “jumping”
-- Neither the scroll offset nor scrollbar’s length change once the target web font is finally loaded
-
-Cons
- - Not able to read the text while waiting for the font file to load\
-   <sub>Could be solved by trivializing glyph paths instead of removing them completely, or by providing basic default paths for the most common symbols</sub>
- - If the target font file fails to load, the page will become unreadable\
-   <sub>A possible solution to this could be some JS logic that would remove the invisible font from CSS if the actual one fails to load (after a couple of seconds)</sub>
- - File size overhead of about 12KB
+This is a purely HTML+CSS approach to combating [FOUT](https://css-tricks.com/fout-foit-foft/).
 
 
 ## See for yourself!
 
-Within the `example` directory you’ll find a basic demo. Don’t open `index.html` directly though, but rather run `npm run demo-server` and then open http://localhost:5703 (to see the before and after pages load in slo-mo, side-by-side). You can also view them separately via http://localhost:5703/without-invisible-ink.html and http://localhost:5703/with-invisible-ink.html respectively. Have fun!
+Within the `example` directory you’ll find a basic demo. Don’t open `index.html` directly, but rather run `make demo` and then open http://localhost:5703.
 
 [![](https://user-images.githubusercontent.com/1392048/104838565-cc709600-585f-11eb-943b-21678d06c3a4.gif)](https://y2z.github.io/projects/invisible-ink/example)
 
@@ -66,12 +52,12 @@ Within the `example` directory you’ll find a basic demo. Don’t open `index.h
 
 ## Motivation
 
-Web fonts get loaded asynchronously. The good news is that it doesn’t block the rest of the page from being loaded (unlike JavaScript). The bad news is that there’s always a chance that the CDN where your favorite font lives is just not as fast as you’d like it to be.
+Web fonts get loaded asynchronously. The good news is that it doesn’t block the rest of the page from being loaded (unlike JavaScript). The bad news is that there’s always a chance that the CDN where your favorite font lives is just not as fast as you’d like it to be, and the font available on your system will take up different amount of space than the specified web font, when it loads.
 
 
 ## Future of this project
 
-This’s more of a proof of concept than a final piece of software. But it works. In an ideal world there should be a Webpack plug-in to do all this automatically.
+This’s more of a proof of concept than a final piece of software. In an ideal world there should be a Webpack plug-in to do all this automatically.
 
 
 ## Credits

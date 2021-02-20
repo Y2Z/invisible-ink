@@ -65,5 +65,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, () => {
-    console.log(`Server is listening to HTTP requests on port ${port}`);
+    console.log(`Server is listening to HTTP requests on http://0.0.0.0:${port}`);
 });

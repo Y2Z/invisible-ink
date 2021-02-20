@@ -14,9 +14,9 @@ const packageJSON = require("../package.json");
 program
     .version(packageJSON.version)
     .arguments("[fontFile...]")
-    .option('-b, --blocks', 'substitute glyphs with solid blocks')
-    .option('-d, --donor <fontFile>', 'borrow glyphs from donor font file')
-    .option('-f, --filter <textFile>', 'only substitute characters found in this file')
+    .option("-b, --blocks", "substitute glyphs with solid blocks")
+    .option("-d, --donor <fontFile>", "borrow glyphs from donor font file")
+    .option("-f, --filter <textFile>", "only substitute characters found in this file")
     .action(fontFiles => {
         const output = [];
         var successCount = 0;

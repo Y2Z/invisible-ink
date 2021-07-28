@@ -69,9 +69,5 @@ All photos shown on the demo’s pages were obtained from [Pexels](https://pexel
 
 ## License
 
-<a href="https://creativecommons.org/publicdomain/zero/1.0/">
-    <img src="https://i.creativecommons.org/p/zero/1.0/88x31.png" alt="CC0" />
-</a>
-<br />
 To the extent possible under law, the author(s) have dedicated all copyright related and neighboring rights to this software to the public domain worldwide.
 This software is distributed without any warranty.

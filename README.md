@@ -16,7 +16,7 @@ This is a purely HTML+CSS approach to combating [FOUT](https://css-tricks.com/fo
 
 Within the `example` directory you’ll find a basic demo. Don’t open `index.html` directly, but rather run `make demo` and then open http://localhost:5703.
 
-![](assets/screencast.gif)]
+![](assets/screencast.gif)
 
 
 ## How to install on your system
@@ -47,7 +47,7 @@ Within the `example` directory you’ll find a basic demo. Don’t open `index.h
     ```
     to your page.
 4. Prepend contents of `output.css` to your project’s CSS codebase.
-5. Get rid of `output.css` <sub>…you filthy animal</sub>
+5. Get rid of `output.css`
 
 
 ## Motivation
@@ -69,9 +69,5 @@ All photos shown on the demo’s pages were obtained from [Pexels](https://pexel
 
 ## License
 
-<a href="http://creativecommons.org/publicdomain/zero/1.0/">
-    <img src="http://i.creativecommons.org/p/zero/1.0/88x31.png" alt="CC0" />
-</a>
-<br />
 To the extent possible under law, the author(s) have dedicated all copyright related and neighboring rights to this software to the public domain worldwide.
 This software is distributed without any warranty.

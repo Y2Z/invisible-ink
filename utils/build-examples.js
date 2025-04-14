@@ -7,15 +7,19 @@ const library = require("../lib");
 
 // Conventional
 (() => {
-    process.stdout.write("Generating conventional…");
-    const examplePageHTML = generateExamplePageHTML("Conventional");
-    fs.writeFileSync(path.resolve("example", "example-conventional.html"), examplePageHTML);
-    console.log(" done");
+  process.stdout.write("Generating conventional example…");
+  const examplePageHTML = generateExamplePageHTML("Conventional");
+  fs.writeFileSync(
+    path.resolve("example", "example-conventional.html"),
+    examplePageHTML,
+  );
+  console.log(" done");
 })();
 
+/*
 // Hollow
 (() => {
-    process.stdout.write("Generating hollow…");
+    process.stdout.write("Generating hollow example…");
     const libraryOptions = {
         allowedNames: [],
     };
@@ -31,7 +35,7 @@ const library = require("../lib");
 
 // Solid
 (() => {
-    process.stdout.write("Generating solid…");
+    process.stdout.write("Generating solid example…");
     const libraryOptions = {
         allowedNames: [],
         useSolidBlocks: true,
@@ -45,44 +49,73 @@ const library = require("../lib");
     fs.writeFileSync(path.resolve("example", "example-solid.html"), examplePageHTML);
     console.log(" done");
 })();
+*/
 
 // Gradual
 (() => {
-    process.stdout.write("Generating gradual…");
-    const libraryOptions = {
-        allowedNames: "The Rats in the Walls By H. P. Lovecraft On July 16, 1923, I moved into Exham Priory".split("").map(name => name.charCodeAt()),
-    };
-    const sourceFontPath = path.resolve(process.cwd(), "example/fonts/AlexBrush-Regular.ttf");
-    const sourceFontBuffer = fs.readFileSync(sourceFontPath)
-    const sourceFontAB = library.bufferToArrayBuffer(sourceFontBuffer);
-    const placeholderFont = library.createFontBuffer(sourceFontAB, libraryOptions, sourceFontAB);
-    const composedCSSFontFaceDefinition = "\n\n" + library.composeCSSFontFaceDefinition(placeholderFont.name, "opentype", placeholderFont.data);
-    const examplePageHTML = generateExamplePageHTML("Gradual", composedCSSFontFaceDefinition);
-    fs.writeFileSync(path.resolve("example", "example-gradual.html"), examplePageHTML);
-    console.log(" done");
+  process.stdout.write("Generating gradual example…");
+  const libraryOptions = {
+    allowedNames:
+      "The Rats in the Walls By H. P. Lovecraft On July 16, 1923, I moved into Exham Priory"
+        .split("")
+        .map((name) => name.charCodeAt()),
+  };
+  const sourceFontPath = path.resolve(
+    process.cwd(),
+    "example/fonts/AlexBrush-Regular.ttf",
+  );
+  const sourceFontBuffer = fs.readFileSync(sourceFontPath);
+  const sourceFontAB = library.bufferToArrayBuffer(sourceFontBuffer);
+  const placeholderFont = library.createFontBuffer(
+    sourceFontAB,
+    libraryOptions,
+    sourceFontAB,
+  );
+  const composedCSSFontFaceDefinition =
+    "\n\n" +
+    library.composeCSSFontFaceDefinition(
+      placeholderFont.name,
+      "opentype",
+      placeholderFont.data,
+    );
+  const examplePageHTML = generateExamplePageHTML(
+    "Gradual",
+    composedCSSFontFaceDefinition,
+  );
+  fs.writeFileSync(
+    path.resolve("example", "example-gradual.html"),
+    examplePageHTML,
+  );
+  console.log(" done");
 })();
 
 function generateExamplePageHTML(title, styles) {
-    const fontFamily = (styles) ? `"Alex Brush", "Alex Brush Placeholder"` : `"Alex Brush"`;
+  const fontFamily = styles
+    ? `"Alex Brush", "Alex Brush Placeholder"`
+    : `"Alex Brush"`;
 
-    // -= Le hack =-
-    // There must be at least one visible element on the page that uses our placeholder font at all times,
-    // otherwise browsers will assume that our placeholder web font is not needed and will flush it from their memory,
-    // hence making it not work for other elements (where it's the second font in the chain) ¯\_(ツ)_/¯
-    const hackCSS = (styles) ? `
+  // -= Le hack =-
+  // There must be at least one visible element on the page that uses our placeholder font at all times,
+  // otherwise browsers will assume that our placeholder web font is not needed and will flush it from their memory,
+  // hence making it not work for other elements (where it's the second font in the chain) ¯\_(ツ)_/¯
+  const hackCSS = styles
+    ? `
 
             #invisible-ink {
                 font-family: "Alex Brush Placeholder";
-            }` : "";
-    const hackHTML = (styles) ? `
+            }`
+    : "";
+  const hackHTML = styles
+    ? `
         <span id="invisible-ink"></span>
-` : "";
+`
+    : "";
 
-    return `\
+  return `\
 <!doctype html>
 <html lang="en">
     <head>
-        <meta charset="UTF-8" />
+        <meta charset="utf-8" />
         <link rel="icon" href="images/1x1-00000000.png" />
         <title>${title || ""}</title>
         <style>${styles || ""}
@@ -95,9 +128,10 @@ function generateExamplePageHTML(title, styles) {
             }
 
             body {
-                background-color: #000;
-                color: #fff;
+                background-color: #fff;
+                color: #000;
                 font-family: ${fontFamily}, Arial, Helvetica, sans-serif;
+                font-size: 17px;
                 margin: 0 auto;
                 overflow-y: scroll;
                 padding: 20px;

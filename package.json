@@ -1,7 +1,7 @@
 {
   "name": "invisible-ink",
-  "version": "1.1.1",
-  "description": "Tool for stripping vector paths from font files",
+  "version": "1.1.2",
+  "description": "Tool for creating gradually-loading web fonts",
   "bin": {
     "invisible-ink": "bin/invisible-ink.js"
   },
@@ -11,7 +11,7 @@
     "test:regression": "mocha test/lib.regression.test.js",
     "test:unit": "mocha test/lib.unit.test.js",
     "test": "npm run test:unit && npm run test:integration && npm run test:regression",
-    "rebuild-examples": "node utils/rebuild-examples.js",
+    "build-examples": "node utils/build-examples.js",
     "start-demo-server": "node utils/throttled-web-server.js"
   },
   "repository": {
@@ -31,17 +31,17 @@
   "bugs": {
     "url": "https://github.com/Y2Z/invisible-ink/issues"
   },
-  "homepage": "https://y2z.github.io/projects/invisible-ink",
+  "homepage": "https://github.com/Y2Z/invisible-ink/",
   "dependencies": {
-    "base64-arraybuffer": "0.2.0",
+    "base64-arraybuffer": "1.0.2",
     "commander": "6.2.1",
-    "opentype.js": "1.3.3",
+    "opentype.js": "1.3.4",
     "simplify-js": "1.2.4"
   },
   "devDependencies": {
-    "mocha": "8.2.1",
-    "pixelmatch": "5.2.1",
-    "puppeteer": "5.5.0",
+    "mocha": "11.1.0",
+    "pixelmatch": "7.1.0",
+    "puppeteer": "24.6.1",
     "throttle": "1.0.3"
   }
 }

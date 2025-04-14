@@ -15,7 +15,7 @@ The idea is that text rendered using placeholder fonts remains hidden while taki
 
 ## See for yourself!
 
-Run `make SERVE` and then navigate to http://localhost:5703
+Run `make serve` and then navigate to http://localhost:5703
 
 ![](assets/screencast.gif)
 

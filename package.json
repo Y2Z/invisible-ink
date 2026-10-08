@@ -1,16 +1,28 @@
 {
   "name": "invisible-ink",
-  "version": "1.1.2",
-  "description": "Tool for creating gradually-loading web fonts",
+  "version": "2.0.0",
+  "description": "Placeholder web fonts that reserve exactly the space of the real font while it loads (CLI, library and PostCSS plugin)",
   "bin": {
     "invisible-ink": "bin/invisible-ink.js"
   },
   "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./postcss": "./lib/postcss.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "engines": {
+    "node": ">=18.11"
+  },
   "scripts": {
-    "test:integration": "mocha test/cli.integration.test.js",
-    "test:regression": "mocha test/lib.regression.test.js",
-    "test:unit": "mocha test/lib.unit.test.js",
-    "test": "npm run test:unit && npm run test:integration && npm run test:regression",
+    "test:unit": "node --test test/lib.unit.test.js",
+    "test:integration": "node --test test/cli.integration.test.js test/postcss.test.js",
+    "test:regression": "node --test test/layout.regression.test.js",
+    "test": "node --test test/lib.unit.test.js test/cli.integration.test.js test/postcss.test.js test/layout.regression.test.js",
     "build-examples": "node utils/build-examples.js",
     "start-demo-server": "node utils/throttled-web-server.js"
   },
@@ -19,12 +31,15 @@
     "url": "git+https://github.com/Y2Z/invisible-ink.git"
   },
   "keywords": [
-    "command line",
-    "tool",
+    "postcss-plugin",
     "font",
     "webfont",
-    "preload",
-    "placeholder"
+    "placeholder",
+    "fallback",
+    "fout",
+    "layout-shift",
+    "cls",
+    "command line"
   ],
   "author": "Sunshine <sunshine@uberspace.net>",
   "license": "CC0-1.0",
@@ -33,15 +48,19 @@
   },
   "homepage": "https://github.com/Y2Z/invisible-ink/",
   "dependencies": {
-    "base64-arraybuffer": "1.0.2",
-    "commander": "6.2.1",
-    "opentype.js": "1.3.4",
-    "simplify-js": "1.2.4"
+    "opentype.js": "1.3.4"
+  },
+  "peerDependencies": {
+    "postcss": "^8.4.0"
+  },
+  "peerDependenciesMeta": {
+    "postcss": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "mocha": "11.1.0",
-    "pixelmatch": "7.1.0",
-    "puppeteer": "24.6.1",
+    "postcss": "^8.5.9",
+    "puppeteer": "^24.6.1",
     "throttle": "1.0.3"
   }
 }

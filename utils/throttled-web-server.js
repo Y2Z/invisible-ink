@@ -1,13 +1,32 @@
 const fs = require("fs");
 const http = require("http");
 const path = require("path");
-const url = require("url");
 const ReadableStream = require("stream").Readable;
 
 const Throttle = require("throttle");
 
 const port = process.env.PORT || 5703;
 const bytesPerSecond = 13 * 1024; // 13 KBps
+
+const contentTypes = {
+    ".html": "text/html; charset=utf-8",
+    ".jpg": "image/jpeg",
+    ".png": "image/png",
+    ".ttf": "font/ttf",
+};
+
+// Streams a file with its content type, answering 404 if it cannot be read
+const sendFile = (res, filePath, transform) => {
+    const stream = fs.createReadStream(filePath);
+    stream.on("open", () => {
+        res.setHeader("Content-Type", contentTypes[path.extname(filePath)] || "application/octet-stream");
+        (transform ? stream.pipe(transform) : stream).pipe(res);
+    });
+    stream.on("error", () => {
+        res.statusCode = 404;
+        res.end("404");
+    });
+};
 
 const stringToStream = (string) => {
     const stream = new ReadableStream();
@@ -27,22 +46,19 @@ const server = http.createServer((req, res) => {
         // Homepage
         case "/":
         case "/index.html":
-            filePath = path.resolve(process.cwd(), "example", "index.html");
-            fs.createReadStream(filePath).pipe(res);
+            sendFile(res, path.resolve(process.cwd(), "example", "index.html"));
             break;
 
         // Favicon
         case "/images/1x1-00000000.png":
-            filePath = path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname));
-            fs.createReadStream(filePath).pipe(res);
+            sendFile(res, path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname)));
             break;
 
         // Content that needs to be throttled
         case "/images/pexels-cmonphotography-4202203.jpg":
         case "/images/pexels-cmonphotography-2664261.jpg":
         case "/fonts/AlexBrush-Regular.ttf":
-            filePath = path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname));
-            fs.createReadStream(filePath).pipe(new Throttle(bytesPerSecond)).pipe(res);
+            sendFile(res, path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname)), new Throttle(bytesPerSecond));
             break;
 
         // Modify and throttle
@@ -53,12 +69,14 @@ const server = http.createServer((req, res) => {
             filePath = path.resolve(process.cwd(), "example" + decodeURIComponent(requestedUrl.pathname));
             var fileContents = fs.readFileSync(filePath).toString();
             fileContents = fileContents.replace(".ttf", ".ttf?" + Date.now());
+            res.setHeader("Content-Type", contentTypes[".html"]);
             const stream = stringToStream(fileContents);
             stream.pipe(new Throttle(bytesPerSecond)).pipe(res);
             break;
 
         // Everything else
         default:
+            res.statusCode = 404;
             res.end("404");
             break;
     }

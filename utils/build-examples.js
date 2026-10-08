@@ -5,89 +5,34 @@ const path = require("path");
 
 const library = require("../lib");
 
-// Conventional
-(() => {
-  process.stdout.write("Generating conventional example…");
-  const examplePageHTML = generateExamplePageHTML("Conventional");
-  fs.writeFileSync(
-    path.resolve("example", "example-conventional.html"),
-    examplePageHTML,
-  );
+const sourceFont = fs.readFileSync(path.resolve(process.cwd(), "example/fonts/AlexBrush-Regular.ttf"));
+
+function placeholderCSS(options) {
+  const placeholder = library.createPlaceholderFont(sourceFont, options);
+  return "\n\n" + library.composeCSSFontFaceDefinition(placeholder.familyName, placeholder.format, placeholder.data);
+}
+
+const examples = [
+  { title: "Conventional", file: "example-conventional.html", options: null },
+  // { title: "Hollow", file: "example-hollow.html", options: { glyphs: "hollow" } },
+  // { title: "Solid", file: "example-solid.html", options: { glyphs: "blocks" } },
+  {
+    title: "Gradual",
+    file: "example-gradual.html",
+    // Only the opening lines get simplified glyphs, everything else stays hollow
+    options: {
+      glyphs: "simplified",
+      characters: "The Rats in the Walls By H. P. Lovecraft On July 16, 1923, I moved into Exham Priory",
+    },
+  },
+];
+
+for (const example of examples) {
+  process.stdout.write(`Generating ${example.title.toLowerCase()} example…`);
+  const styles = example.options ? placeholderCSS(example.options) : undefined;
+  fs.writeFileSync(path.resolve("example", example.file), generateExamplePageHTML(example.title, styles));
   console.log(" done");
-})();
-
-/*
-// Hollow
-(() => {
-    process.stdout.write("Generating hollow example…");
-    const libraryOptions = {
-        allowedNames: [],
-    };
-    const sourceFontPath = path.resolve(process.cwd(), "example/fonts/AlexBrush-Regular.ttf");
-    const sourceFontBuffer = fs.readFileSync(sourceFontPath)
-    const sourceFontAB = library.bufferToArrayBuffer(sourceFontBuffer);
-    const placeholderFont = library.createFontBuffer(sourceFontAB, libraryOptions, undefined);
-    const composedCSSFontFaceDefinition = "\n\n" + library.composeCSSFontFaceDefinition(placeholderFont.name, "opentype", placeholderFont.data);
-    const examplePageHTML = generateExamplePageHTML("Hollow", composedCSSFontFaceDefinition);
-    fs.writeFileSync(path.resolve("example", "example-hollow.html"), examplePageHTML);
-    console.log(" done");
-})();
-
-// Solid
-(() => {
-    process.stdout.write("Generating solid example…");
-    const libraryOptions = {
-        allowedNames: [],
-        useSolidBlocks: true,
-    };
-    const sourceFontPath = path.resolve(process.cwd(), "example/fonts/AlexBrush-Regular.ttf");
-    const sourceFontBuffer = fs.readFileSync(sourceFontPath)
-    const sourceFontAB = library.bufferToArrayBuffer(sourceFontBuffer);
-    const placeholderFont = library.createFontBuffer(sourceFontAB, libraryOptions, undefined);
-    const composedCSSFontFaceDefinition = "\n\n" + library.composeCSSFontFaceDefinition(placeholderFont.name, "opentype", placeholderFont.data);
-    const examplePageHTML = generateExamplePageHTML("Solid", composedCSSFontFaceDefinition);
-    fs.writeFileSync(path.resolve("example", "example-solid.html"), examplePageHTML);
-    console.log(" done");
-})();
-*/
-
-// Gradual
-(() => {
-  process.stdout.write("Generating gradual example…");
-  const libraryOptions = {
-    allowedNames:
-      "The Rats in the Walls By H. P. Lovecraft On July 16, 1923, I moved into Exham Priory"
-        .split("")
-        .map((name) => name.charCodeAt()),
-  };
-  const sourceFontPath = path.resolve(
-    process.cwd(),
-    "example/fonts/AlexBrush-Regular.ttf",
-  );
-  const sourceFontBuffer = fs.readFileSync(sourceFontPath);
-  const sourceFontAB = library.bufferToArrayBuffer(sourceFontBuffer);
-  const placeholderFont = library.createFontBuffer(
-    sourceFontAB,
-    libraryOptions,
-    sourceFontAB,
-  );
-  const composedCSSFontFaceDefinition =
-    "\n\n" +
-    library.composeCSSFontFaceDefinition(
-      placeholderFont.name,
-      "opentype",
-      placeholderFont.data,
-    );
-  const examplePageHTML = generateExamplePageHTML(
-    "Gradual",
-    composedCSSFontFaceDefinition,
-  );
-  fs.writeFileSync(
-    path.resolve("example", "example-gradual.html"),
-    examplePageHTML,
-  );
-  console.log(" done");
-})();
+}
 
 function generateExamplePageHTML(title, styles) {
   const fontFamily = styles

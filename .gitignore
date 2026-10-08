@@ -105,3 +105,6 @@ dist
 
 # Invisible Ink output
 output.css
+
+# Placeholders cached by the PostCSS plugin
+.cache/

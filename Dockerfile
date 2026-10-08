@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
 # Install packages into ./../node_modules
 WORKDIR /src/y2z/invisible-ink/..
 ADD Prebuild.mk package.json package-lock.json ./
+RUN make -f Prebuild.mk UPDATE_LOCK_FILE
 RUN make -f Prebuild.mk INSTALL_DEPS
 
 WORKDIR /src/y2z/invisible-ink

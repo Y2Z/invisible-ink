@@ -28,14 +28,19 @@ const PAGE_STYLE = `
 `;
 
 // Returns { loaded, characters: [{ x, y, width }], width, height }.
-async function measureLayout(browser, fontData, format, text) {
+// options.weight sets font-weight; the @font-face covers weights 1-1000, so a
+// variable font is used at that weight. options.variationSettings sets
+// font-variation-settings, e.g. "'XTRA' 603".
+async function measureLayout(browser, fontData, format, text, options = {}) {
+    const weight = options.weight || 400;
+    const variations = options.variationSettings || "normal";
     const page = await browser.newPage();
     try {
         const url = `data:${MIME[format]};base64,${Buffer.from(fontData).toString("base64")}`;
         await page.setContent(`<!doctype html><meta charset="utf-8"><style>
-            @font-face { font-family: "Measured"; src: url("${url}") format("${format}"); }
+            @font-face { font-family: "Measured"; src: url("${url}") format("${format}"); font-weight: 1 1000; }
             ${PAGE_STYLE}
-            #sample { font-family: "Measured", monospace; }
+            #sample { font-family: "Measured", monospace; font-weight: ${weight}; font-variation-settings: ${variations}; }
         </style><div id="sample"></div>`);
 
         return await page.evaluate(async (sampleText) => {
@@ -43,7 +48,7 @@ async function measureLayout(browser, fontData, format, text) {
             sample.textContent = sampleText;
             let loaded = true;
             try {
-                await document.fonts.load('40px "Measured"', sampleText);
+                await document.fonts.load(`${getComputedStyle(sample).fontWeight} 40px "Measured"`, sampleText);
                 loaded = [...document.fonts].some(face => face.family.replace(/"/g, "") === "Measured" && face.status === "loaded");
             } catch (_err) {
                 loaded = false;

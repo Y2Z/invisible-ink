@@ -14,10 +14,12 @@ try {
 }
 
 const invisibleInk = require("../lib/postcss");
-const { rewriteFontFamily, rewriteFontShorthand, rewriteCustomProperty, parseDescriptor, pickSourceUrl } = invisibleInk._internal;
+const {
+    optionsCacheKey, parseDescriptor, pickSourceUrl, rewriteCustomProperty, rewriteFontFamily, rewriteFontShorthand, sourceUrls,
+} = invisibleInk._internal;
 
 const FONT = path.resolve(__dirname, "../example/fonts/AlexBrush-Regular.ttf");
-const FAMILIES = new Map([["alex brush", "Alex Brush Placeholder"]]);
+const FAMILIES = new Map([["alex brush", "Alex Brush Placeholder"], ["source sans 3", "Source Sans 3 Placeholder"]]);
 
 describe("value rewriting", () => {
     it("inserts the placeholder right after its family", () => {
@@ -42,10 +44,37 @@ describe("value rewriting", () => {
         assert.strictEqual(rewriteFontShorthand("caption", FAMILIES), null);
     });
 
+    it("finds the size in the font shorthand even when the family name contains digits", () => {
+        const cases = [
+            ["12px Source Sans 3, sans-serif", '12px Source Sans 3, "Source Sans 3 Placeholder", sans-serif'],
+            ["700 12px Source Sans 3", '700 12px Source Sans 3, "Source Sans 3 Placeholder"'],
+            ["condensed 700 16px Alex Brush", 'condensed 700 16px Alex Brush, "Alex Brush Placeholder"'],
+            ["oblique 10deg 16px Alex Brush", 'oblique 10deg 16px Alex Brush, "Alex Brush Placeholder"'],
+            ["16px / 1.5 Alex Brush", '16px / 1.5 Alex Brush, "Alex Brush Placeholder"'],
+            ["16px/ 1.5 Alex Brush", '16px/ 1.5 Alex Brush, "Alex Brush Placeholder"'],
+            ["16px /1.5 Alex Brush", '16px /1.5 Alex Brush, "Alex Brush Placeholder"'],
+            ["bold 1.2em/var(--lh) Alex Brush", 'bold 1.2em/var(--lh) Alex Brush, "Alex Brush Placeholder"'],
+            ["small 'Alex Brush'", "small 'Alex Brush', \"Alex Brush Placeholder\""],
+            ["120% Alex Brush", '120% Alex Brush, "Alex Brush Placeholder"'],
+        ];
+        for (const [input, expected] of cases) assert.strictEqual(rewriteFontShorthand(input, FAMILIES), expected, input);
+        assert.strictEqual(rewriteFontShorthand("700 Source Sans 3", FAMILIES), null, "no size: not a valid shorthand");
+    });
+
     it("rewrites custom properties only when they hold a family list", () => {
         assert.strictEqual(rewriteCustomProperty('"Alex Brush", cursive', FAMILIES), '"Alex Brush", "Alex Brush Placeholder", cursive');
         assert.strictEqual(rewriteCustomProperty("1rem Alex Brush", FAMILIES), null);
         assert.strictEqual(rewriteCustomProperty("url(Alex Brush)", FAMILIES), null);
+    });
+
+    it("rewrites a single family in a custom property only when its name is about fonts", () => {
+        for (const name of ["--font-heading", "--heading-font", "--body-family", "--typeface", "--ff-sans", "--FONT"]) {
+            assert.strictEqual(rewriteCustomProperty("Alex Brush", FAMILIES, name), 'Alex Brush, "Alex Brush Placeholder"', name);
+        }
+        for (const name of ["--grid-area", "--animation-name", "--offset", "--buffer"]) {
+            assert.strictEqual(rewriteCustomProperty("Alex Brush", FAMILIES, name), null, name);
+        }
+        assert.strictEqual(rewriteCustomProperty("Alex Brush, cursive", FAMILIES, "--stack"), 'Alex Brush, "Alex Brush Placeholder", cursive');
     });
 });
 
@@ -67,10 +96,32 @@ describe("descriptor parsing", () => {
         assert.throws(() => parseDescriptor("magic(1)", fail), /unknown function/);
     });
 
+    it("lists every url() of src in order", () => {
+        assert.deepStrictEqual(
+            sourceUrls('local("X"), url(https://cdn/a.woff2) format("woff2"), url("data:font/woff2;base64,AA"), url(\'b.ttf\')'),
+            ["https://cdn/a.woff2", "b.ttf"],
+        );
+    });
+
     it("picks the first local font url from src", () => {
         assert.strictEqual(pickSourceUrl('local("X"), url("a.woff2") format("woff2"), url(b.ttf)'), "a.woff2");
         assert.strictEqual(pickSourceUrl("url(data:font/woff2;base64,AAAA), url('c.woff')"), "c.woff");
         assert.strictEqual(pickSourceUrl('local("X")'), null);
+    });
+});
+
+describe("cache key", () => {
+    it("tells different character sets apart, whatever their type", () => {
+        const key = (characters) => optionsCacheKey({ glyphs: "simplified", characters });
+        assert.notStrictEqual(key(new Set([65])), key(new Set([66])));
+        assert.strictEqual(key(new Set([66, 65])), key("AB"));
+        assert.strictEqual(key([65, 66, 65]), key("BA"));
+        assert.notStrictEqual(key("AB"), key(null));
+    });
+
+    it("hashes Buffers instead of ignoring them, and ignores key order", () => {
+        assert.notStrictEqual(optionsCacheKey({ donor: Buffer.from("a") }), optionsCacheKey({ donor: Buffer.from("b") }));
+        assert.strictEqual(optionsCacheKey({ a: 1, b: 2 }), optionsCacheKey({ b: 2, a: 1 }));
     });
 });
 
@@ -179,6 +230,75 @@ p { font-family: Georgia, serif; }`);
         assert.match(big.warnings()[0].text, /placeholder for "Brush" is \d+ KB/);
         await assert.rejects(process(FACE.replace("brush.ttf", "missing.ttf")), /font file not found: \.\/fonts\/missing\.ttf/);
         await assert.rejects(process(FACE.replace("hollow", "sparkly")), /unknown keyword "sparkly"/);
+    });
+
+    it("does not reuse a cached placeholder made for other characters", async () => {
+        const cache = path.join(dir, "cache-characters");
+        const css = FACE.replace("hollow", "simplified");
+        const build = async (characters, cacheDir) =>
+            (await postcss([invisibleInk({ cache: cacheDir, characters })]).process(css, { from: path.join(dir, "a.css") })).css;
+        await build(new Set([65]), cache);
+        const cached = await build(new Set([..."Hello"].map(c => c.codePointAt(0))), cache);
+        const fresh = await build(new Set([..."Hello"].map(c => c.codePointAt(0))), false);
+        assert.strictEqual(cached, fresh);
+    });
+
+    it("treats protocol-relative urls as remote", async () => {
+        const result = await process(FACE.replace("./fonts/brush.ttf?v=1#x", "//cdn.example.com/brush.woff2"));
+        assert.match(result.warnings()[0].text, /cannot read remote font "\/\/cdn\.example\.com\/brush\.woff2"/);
+        assert.strictEqual(result.css.match(/@font-face/g).length, 1);
+    });
+
+    it("goes past remote and missing sources to the first local font file", async () => {
+        const src = 'url(https://cdn.example.com/brush.woff2) format("woff2"), url(./fonts/nope.woff2), url("./fonts/brush.ttf")';
+        const result = await process(FACE.replace(/src: [^;]+;/, `src: ${src};`));
+        assert.strictEqual(result.css.match(/@font-face/g).length, 2);
+        assert.deepStrictEqual(result.warnings(), []);
+        // only remote sources: warn; a missing local file among them: fail
+        const remoteOnly = await process(FACE.replace(/src: [^;]+;/, "src: url(https://a/x.woff2), url(//b/y.woff2);"));
+        assert.match(remoteOnly.warnings()[0].text, /cannot read remote font "https:\/\/a\/x\.woff2"/);
+        await assert.rejects(
+            process(FACE.replace(/src: [^;]+;/, "src: url(https://a/x.woff2), url(./fonts/nope.woff2);")),
+            /font file not found: \.\/fonts\/nope\.woff2/,
+        );
+    });
+
+    it("resolves urls against the file each @font-face came from", async () => {
+        // What postcss-import or Vite produce: rules from another folder inlined into one root
+        fs.mkdirSync(path.join(dir, "vendor", "brush"), { recursive: true });
+        fs.copyFileSync(FONT, path.join(dir, "vendor", "brush", "brush.ttf"));
+        fs.writeFileSync(path.join(dir, "vendor", "brush", "chars.txt"), "Hi");
+        const imported = postcss.parse(
+            '@font-face { font-family: "Vendor"; src: url(./brush.ttf); invisible-ink: simplified filter(./chars.txt); }',
+            { from: path.join(dir, "vendor", "brush", "index.css") },
+        );
+        const main = postcss.parse("p { font-family: Vendor; }", { from: path.join(dir, "app", "main.css") });
+        main.prepend(imported.nodes);
+        const result = await postcss([invisibleInk({ cache: false })]).process(main, { from: path.join(dir, "app", "main.css") });
+        assert.strictEqual(result.css.match(/@font-face/g).length, 2);
+        assert.match(result.css, /p \{ font-family: Vendor, "Vendor Placeholder"; \}/);
+        const dependencies = result.messages.filter(m => m.type === "dependency");
+        assert.deepStrictEqual(dependencies.map(m => path.relative(dir, m.file)).sort(), ["vendor/brush/brush.ttf", "vendor/brush/chars.txt"]);
+        assert.ok(dependencies.every(m => m.parent === path.join(dir, "app", "main.css")), "dependencies belong to the root file");
+    });
+
+    it("leaves an invisible-ink: none marker so later passes still skip the rule", async () => {
+        const optedOut = FACE.replace("invisible-ink: hollow", "invisible-ink: none");
+        const once = (await process(optedOut, { all: true })).css;
+        assert.match(once, /\/\* invisible-ink: none \*\//);
+        assert.doesNotMatch(once, /invisible-ink: none;/);
+        const twice = (await process(once, { all: true })).css;
+        assert.strictEqual(twice, once);
+        assert.strictEqual(twice.match(/@font-face/g).length, 1);
+        // an explicit descriptor next to the marker wins
+        const overridden = once.replace("/* invisible-ink: none */", "/* invisible-ink: none */\n    invisible-ink: hollow;");
+        assert.strictEqual((await process(overridden)).css.match(/@font-face/g).length, 2);
+    });
+
+    it("leaves single-word custom properties alone unless they are about fonts", async () => {
+        const { css } = await process(`${FACE}\n:root { --grid-area: brush; --font-body: brush; }`);
+        assert.match(css, /--grid-area: brush;/);
+        assert.match(css, /--font-body: brush, "Brush Placeholder";/);
     });
 
     it("caches generated placeholders on disk", async () => {

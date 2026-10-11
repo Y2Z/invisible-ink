@@ -61,6 +61,18 @@ describe("value rewriting", () => {
         assert.strictEqual(rewriteFontShorthand("700 Source Sans 3", FAMILIES), null, "no size: not a valid shorthand");
     });
 
+    it("accepts a unitless zero as the size in the font shorthand", () => {
+        const cases = [
+            ["0 Alex Brush", '0 Alex Brush, "Alex Brush Placeholder"'],
+            ['bold 0/1.2 "Alex Brush", serif', 'bold 0/1.2 "Alex Brush", "Alex Brush Placeholder", serif'],
+            ["italic 0.0 Alex Brush", 'italic 0.0 Alex Brush, "Alex Brush Placeholder"'],
+            ["100 0 Alex Brush", '100 0 Alex Brush, "Alex Brush Placeholder"'],
+        ];
+        for (const [input, expected] of cases) assert.strictEqual(rewriteFontShorthand(input, FAMILIES), expected, input);
+        // other unitless numbers are still weights, not sizes
+        assert.strictEqual(rewriteFontShorthand("700 Alex Brush", FAMILIES), null);
+    });
+
     it("rewrites custom properties only when they hold a family list", () => {
         assert.strictEqual(rewriteCustomProperty('"Alex Brush", cursive', FAMILIES), '"Alex Brush", "Alex Brush Placeholder", cursive');
         assert.strictEqual(rewriteCustomProperty("1rem Alex Brush", FAMILIES), null);

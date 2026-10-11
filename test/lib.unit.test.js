@@ -55,6 +55,11 @@ describe("createPlaceholderFont", () => {
         assert.ok(sfnt.readFont(result.data).tables.get("GPOS").equals(sfnt.readFont(kerned).tables.get("GPOS")));
     });
 
+    it("takes outlines from a donor without needing glyphs: simplified", () => {
+        assert.ok(library.createPlaceholderFont(FONT, { donor: FONT }).visibleGlyphCount > 200);
+        assert.strictEqual(library.createPlaceholderFont(FONT, { donor: FONT, glyphs: "hollow" }).visibleGlyphCount, 0);
+    });
+
     it("drops layout tables only when asked to", () => {
         const result = placeholderTables({ layout: false, format: "truetype" });
         assert.ok(!result.has("GPOS"));
@@ -146,6 +151,122 @@ describe("createPlaceholderFont", () => {
     });
 });
 
+describe("variable fonts (gvar)", () => {
+    const gvar = require("../lib/gvar");
+    const VARIABLE = fs.readFileSync(path.resolve(__dirname, "fonts/Oswald-wght-noHVAR.ttf"));
+
+    // Phantom point deltas of every glyph: { glyphIndex: [[tuple, [[dx, dy] × 4]], ...] }
+    function phantomDeltas(tables) {
+        const table = tables.get("gvar");
+        const counts = gvar.glyphPointCounts(tables);
+        const axisCount = table.readUInt16BE(4);
+        const longOffsets = table.readUInt16BE(14) & 1;
+        const dataStart = table.readUInt32BE(16);
+        const offsetAt = (i) => (longOffsets ? table.readUInt32BE(20 + i * 4) : table.readUInt16BE(20 + i * 2) * 2);
+        const result = {};
+        counts.forEach((count, i) => {
+            const data = table.subarray(dataStart + offsetAt(i), dataStart + offsetAt(i + 1));
+            const variations = gvar.readGlyphVariations(data, axisCount, count)
+                .filter(v => v.phantom.some(([x, y]) => x || y))
+                .map(v => [`${v.tupleIndex}:${v.tupleBytes.toString("hex")}`, v.phantom]);
+            if (variations.length) result[i] = variations;
+        });
+        return result;
+    }
+
+    const COMPOSITES = fs.readFileSync(path.resolve(__dirname, "fonts/RobotoFlex-XTRA-noHVAR.ttf"));
+
+    // What the placeholder must carry for each glyph: the deltas of the glyph
+    // whose metrics renderers use (a USE_MY_METRICS component, or itself)
+    function expectedDeltas(tables) {
+        const own = phantomDeltas(tables);
+        const sources = gvar.metricsSources(gvar.readGlyphStructure(tables).metricsComponent);
+        const expected = {};
+        sources.forEach((source, glyph) => {
+            if (own[source]) expected[glyph] = own[source];
+        });
+        return expected;
+    }
+
+    for (const glyphs of ["hollow", "blocks", "simplified"]) {
+        it(`keeps every glyph's width variation (${glyphs})`, () => {
+            for (const font of [VARIABLE, COMPOSITES]) {
+                const source = sfnt.readFont(font).tables;
+                const placeholder = sfnt.readFont(library.createPlaceholderFont(font, { glyphs }).data).tables;
+                const expected = expectedDeltas(source);
+                assert.ok(Object.keys(expected).length >= 4, "the fixture has width variation");
+                assert.deepStrictEqual(phantomDeltas(placeholder), expected);
+            }
+        });
+    }
+
+    it("gives composites with USE_MY_METRICS their component's width variation", () => {
+        const source = sfnt.readFont(COMPOSITES).tables;
+        const font = parse(COMPOSITES);
+        const [r, rcaron] = [font.charToGlyphIndex("r"), font.charToGlyphIndex("ř")];
+        const structure = gvar.readGlyphStructure(source);
+        assert.strictEqual(structure.metricsComponent[rcaron], r);
+        const own = phantomDeltas(source);
+        assert.notDeepStrictEqual(own[rcaron], own[r], "the fixture's ř has deltas of its own that differ from r's");
+        const placeholder = phantomDeltas(sfnt.readFont(library.createPlaceholderFont(COMPOSITES).data).tables);
+        assert.deepStrictEqual(placeholder[rcaron], own[r]);
+    });
+
+    it("follows USE_MY_METRICS through nested composites and survives cycles", () => {
+        assert.deepStrictEqual(gvar.metricsSources([-1, 0, 1, -1]), [0, 0, 0, 3]);
+        assert.deepStrictEqual(gvar.metricsSources([1, 0]), [1, 0]); // a cycle stops where it would repeat
+    });
+
+    it("gives every tuple exactly the four phantom points, renumbered for the new outline", () => {
+        const placeholder = sfnt.readFont(library.createPlaceholderFont(VARIABLE, { glyphs: "simplified" }).data).tables;
+        const table = placeholder.get("gvar");
+        const axisCount = table.readUInt16BE(4);
+        const counts = gvar.glyphPointCounts(placeholder);
+        const dataStart = table.readUInt32BE(16);
+        let tuplesChecked = 0;
+        counts.forEach((count, i) => {
+            const start = dataStart + table.readUInt32BE(20 + i * 4);
+            const end = dataStart + table.readUInt32BE(24 + i * 4);
+            if (end === start) return;
+            const data = table.subarray(start, end);
+            assert.strictEqual(data.readUInt16BE(0) & 0x8000, 0, `glyph ${i}: no shared point numbers`);
+            let header = 4;
+            let chunk = data.readUInt16BE(2);
+            for (let t = 0; t < (data.readUInt16BE(0) & 0x0fff); t++) {
+                const size = data.readUInt16BE(header);
+                const tupleIndex = data.readUInt16BE(header + 2);
+                assert.ok(tupleIndex & 0x2000, `glyph ${i}: private point numbers`);
+                // packed point numbers: count 4, one run of words, first = count, then +1 +1 +1
+                assert.deepStrictEqual(
+                    [data[chunk], data[chunk + 1], ...[0, 1, 2, 3].map(k => data.readUInt16BE(chunk + 2 + k * 2))],
+                    [4, 0x83, count, 1, 1, 1],
+                    `glyph ${i}, tuple ${t}`,
+                );
+                header += 4 + ((tupleIndex & 0x8000) ? axisCount * 2 : 0) + ((tupleIndex & 0x4000) ? axisCount * 4 : 0);
+                chunk += size;
+                tuplesChecked++;
+            }
+            assert.ok(chunk <= data.length, `glyph ${i}: data fits`);
+        });
+        assert.ok(tuplesChecked > 40);
+    });
+
+    it("counts gvar points: outline points for simple glyphs, components for composites", () => {
+        const tables = sfnt.readFont(VARIABLE).tables;
+        const counts = gvar.glyphPointCounts(tables);
+        const font = parse(VARIABLE);
+        const space = font.charToGlyphIndex(" ");
+        const o = font.charToGlyphIndex("o");
+        assert.strictEqual(counts[space], 0);
+        const contours = font.glyphs.get(o).path.commands.filter(c => c.type === "M").length;
+        assert.ok(counts[o] > contours * 3, "the o has outline points");
+    });
+
+    it("adds no gvar to fonts without one", () => {
+        assert.ok(!sfnt.readFont(library.createPlaceholderFont(FONT).data).tables.has("gvar"));
+    });
+});
+
 describe("character filter", () => {
     it("counts characters by code point, including astral ones", () => {
         const { codePointsOf } = library._internal;
@@ -202,6 +323,63 @@ describe("sfnt", () => {
         for (const [tag, data] of tables) {
             if (tag !== "head") assert.ok(reread.get(tag).equals(data), `"${tag}" differs`);
         }
+    });
+
+    it("rebuilds omitted side bearings from glyph headers when glyf is not transformed", () => {
+        // WOFF2 with glyf/loca stored as-is (null transform) and hmtx transformed
+        // with both side bearing arrays left out (flags = 3)
+        const zlib = require("zlib");
+        const { flavor, tables } = sfnt.readFont(FONT);
+        const numGlyphs = tables.get("maxp").readUInt16BE(4);
+        const numHMetrics = tables.get("hhea").readUInt16BE(34);
+        const hmtx = tables.get("hmtx");
+        const transformedHmtx = Buffer.alloc(1 + numHMetrics * 2);
+        transformedHmtx[0] = 3;
+        for (let i = 0; i < numHMetrics; i++) transformedHmtx.writeUInt16BE(hmtx.readUInt16BE(i * 4), 1 + i * 2);
+
+        const known = ["cmap", "head", "hhea", "hmtx", "maxp", "name", "OS/2", "post", "cvt ", "fpgm", "glyf", "loca", "prep", "CFF ", "VORG", "EBDT",
+            "EBLC", "gasp", "hdmx", "kern", "LTSH", "PCLT", "VDMX", "vhea", "vmtx", "BASE", "GDEF", "GPOS", "GSUB"];
+        const varint = (value) => {
+            const bytes = [];
+            do {
+                bytes.unshift(value & 0x7f);
+                value = Math.floor(value / 128);
+            } while (value > 0);
+            return bytes.map((byte, i) => (i < bytes.length - 1 ? byte | 0x80 : byte));
+        };
+        const tags = [...tables.keys()].sort();
+        const directory = [];
+        const stream = [];
+        for (const tag of tags) {
+            const index = known.indexOf(tag);
+            const version = tag === "glyf" || tag === "loca" ? 3 : tag === "hmtx" ? 1 : 0;
+            directory.push(index >= 0 ? index | (version << 6) : 0x3f | (version << 6));
+            if (index < 0) directory.push(...Buffer.from(tag, "latin1"));
+            directory.push(...varint(tables.get(tag).length));
+            if (tag === "hmtx") directory.push(...varint(transformedHmtx.length));
+            stream.push(tag === "hmtx" ? transformedHmtx : tables.get(tag));
+        }
+        const compressed = zlib.brotliCompressSync(Buffer.concat(stream));
+        const header = Buffer.alloc(48);
+        header.write("wOF2", 0, "latin1");
+        header.writeUInt32BE(flavor, 4);
+        header.writeUInt16BE(tags.length, 12);
+        header.writeUInt32BE(compressed.length, 20);
+        const woff2 = Buffer.concat([header, Buffer.from(directory), compressed]);
+        header.writeUInt32BE(woff2.length, 8);
+
+        const decoded = sfnt.readFont(Buffer.concat([header, Buffer.from(directory), compressed])).tables.get("hmtx");
+        const font = parse(FONT);
+        let checked = 0;
+        for (let i = 0; i < numGlyphs; i++) {
+            const lsb = i < numHMetrics ? decoded.readInt16BE(i * 4 + 2) : decoded.readInt16BE(numHMetrics * 4 + (i - numHMetrics) * 2);
+            const glyph = font.glyphs.get(i);
+            const expected = glyph.path.commands.length ? glyph.xMin : 0;
+            assert.strictEqual(lsb, expected, `glyph ${i}`);
+            if (expected !== 0) checked++;
+        }
+        assert.ok(checked > 100, "most glyphs have a non-zero side bearing");
+        for (let i = 0; i < numHMetrics; i++) assert.strictEqual(decoded.readUInt16BE(i * 4), hmtx.readUInt16BE(i * 4));
     });
 
     it("decodes WOFF (zlib) files", () => {

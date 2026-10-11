@@ -60,7 +60,7 @@ That is all. At build time the plugin
 
 1. creates a placeholder from the font file in `src` (`.woff2`, `.woff`, `.ttf` and `.otf` all work),
 2. adds an `@font-face` for `"Alex Brush Placeholder"` with the placeholder inlined, copying `font-weight`, `font-style`, `unicode-range`, `size-adjust` and the other descriptors of the original,
-3. puts `"Alex Brush Placeholder"` right after `"Alex Brush"` wherever the family is used: `font-family`, the `font` shorthand and custom properties like `--font-heading`,
+3. puts `"Alex Brush Placeholder"` right after `"Alex Brush"` wherever the family is used: `font-family`, the `font` shorthand and custom properties like `--font-heading` (a custom property holding a single name is only rewritten when its name mentions `font`, `family`, `typeface` or `ff`, so `--grid-area: brush` is left alone),
 4. adds `font-display: swap` to the original rule if it has no `font-display`, so the browser uses the placeholder instead of hiding text.
 
 No HTML changes are needed. Placeholders are cached in `node_modules/.cache/invisible-ink`, so rebuilds are fast.
@@ -74,9 +74,9 @@ No HTML changes are needed. Placeholders are cached in `node_modules/.cache/invi
 | `simplified` | rough outlines of the real glyphs; `simplified 30` sets the tolerance (default 50 per 1000 units of em; higher is coarser and smaller) |
 | `characters("Hello")` | only these characters get blocks/outlines, everything else stays invisible |
 | `filter("./hero-text.txt")` | same, with the characters read from a file (path relative to the stylesheet) |
-| `donor("./other.ttf")` | take simplified outlines from another font |
+| `donor("./other.ttf")` | take simplified outlines from another font (implies `simplified`) |
 | `no-layout` | drop kerning and other layout tables: smaller, but text no longer lines up exactly |
-| `none` | no placeholder (useful with the `all` option) |
+| `none` | no placeholder (useful with the `all` option); it is left behind as a `/* invisible-ink: none */` comment, so running the plugin again keeps skipping the rule |
 
 Values combine: `invisible-ink: simplified 40 filter("./headline.txt");`
 
@@ -95,6 +95,8 @@ invisibleInk({
     warnSize: 32768,         // warn when a placeholder is bigger than this (bytes)
 });
 ```
+
+Font urls (and `filter()` / `donor()` files) are resolved relative to the stylesheet each `@font-face` came from, so rules pulled in with `@import` work. When `src` lists several urls, the first one that is a local file is used.
 
 The plugin remembers the families it has seen, so usages in one stylesheet are rewritten after the `@font-face` has been processed in another. If a stylesheet using a family can be processed first (in some setups, component styles), list the family in `families`.
 
@@ -141,7 +143,7 @@ const placeholder = createPlaceholderFont(fs.readFileSync("My-Font.woff2"), {
     glyphs: "hollow",          // "hollow" | "blocks" | "simplified"
     characters: null,          // string, array of code points or Set
     tolerance: 50,
-    donor: null,               // Buffer of another font
+    donor: null,               // Buffer of another font (implies glyphs: "simplified")
     missing: "hollow",         // what to draw when the donor lacks a glyph: "hollow" | "blocks"
     layout: true,
     format: "woff2",           // or "truetype"
@@ -168,8 +170,8 @@ Version 2 copies every table of the original font byte for byte (`hmtx`, `hhea`,
 
 ## Limitations
 
-- Variable CFF2 fonts and font collections (`.ttc`) are not supported. Variable TrueType fonts keep exact layout along every axis (tested with Oswald from 200 to 700), but `blocks` and `simplified` glyphs are drawn from the default instance.
-- Remote fonts (`https://…` in `src`) are skipped with a warning; download them into the project.
+- Variable CFF2 fonts and font collections (`.ttc`) are not supported. Variable TrueType fonts keep exact layout along every axis, with or without an `HVAR` table (tested with Oswald, Inter, Noto Sans and Roboto Flex), but `blocks` and `simplified` glyphs are drawn from the default instance.
+- Remote fonts (`https://…` or `//…` in `src`) are skipped with a warning; download them into the project.
 - With `characters()`/`filter()`, glyphs only reachable through ligatures or alternates stay invisible.
 - Vertical metrics are copied as they are, so the placeholder behaves like the real font on every platform; only Chromium on Linux has been tested here.
 

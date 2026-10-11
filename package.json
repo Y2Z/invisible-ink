@@ -1,6 +1,6 @@
 {
   "name": "invisible-ink",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Placeholder web fonts that reserve exactly the space of the real font while it loads (CLI, library and PostCSS plugin)",
   "bin": {
     "invisible-ink": "bin/invisible-ink.js"
